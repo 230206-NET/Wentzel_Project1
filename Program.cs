@@ -1,62 +1,155 @@
-﻿
-public class LoginManager{
-    public void login(string username, string password){
-        //todo
-        //probably returns a session?
+﻿using System.Data;
+using System.Data.SqlClient;
+public class runner{
+    static DatabaseRepo db = new DatabaseRepo();
+    static int emptype = 0;
+    static int empid;
+    public static void Main(string[] args){
+        while (emptype == 0)
+        {
+            Console.WriteLine("Would you like to login (1) or register (2)?");
+            switch(Console.ReadLine())
+            {
+                case "1":
+                    login();
+                    break;
+                case "2":
+                    register();
+                    break;
+
+            } 
+        }
+        switch(emptype){
+            case 1:
+                employeeMenu();
+                break;
+            case 2:
+                managerMenu();
+                break;
+        }
+
+    }
+    public static void register(){
+        Console.WriteLine("Enter a name:");
+        string name = Console.ReadLine();
+        Console.WriteLine("Enter a password:");
+        string pass = Console.ReadLine();
+        empid = db.newEmployee(name, pass);
+        emptype = 1;
+        Console.WriteLine("Your id is {0}", empid);
     }
 
-    public void register(string username, string password){
-        //todo
+    public static void login(){
+        Console.WriteLine("Enter your Employee ID:");
+        string id = Console.ReadLine();
+        string pass = db.getPassByEmpId(id);
+        if(String.IsNullOrEmpty(pass)){
+            Console.WriteLine("It appears the id you entered does not exist, please register");
+            return;
+        }
+        Console.WriteLine("Please enter your password:");
+        if(Console.ReadLine().Equals(pass)){
+            emptype = db.getEmployeeTypeById(id);
+            empid = int.Parse(id);
+        }else{
+            Console.WriteLine("Your password did not match");
+        }
     }
 
-}
+    public static void submitTicket(){
+        string note;
+        decimal value;
+        while (true)
+        {
+            Console.WriteLine("Enter expense note:");
+            note = Console.ReadLine();
+            if(!String.IsNullOrEmpty(note)) break;
+        }
+        Console.WriteLine("Enter expense value:");
+        value = decimal.Parse(Console.ReadLine());
 
-public class localStorage{
-    private static string _filePath = "localstore.json";
-    FileStream fs;
-
-    public localStorage()
-    {
-        fs = File.Open(_filePath, FileMode.OpenOrCreate);
+        db.putNewExpense(note, empid, value);
     }
 
-    public object getRecord(string key){
-        //todo
-        return null;
+    public static void processTicket(){
+        Console.WriteLine("Enter ticket ID you wish to process:");
+        int id = int.Parse(Console.ReadLine());
+        Console.WriteLine("Do you wish to (1) Approve, (2) Deny or (3) make Pending?");
+        string input = Console.ReadLine();
+        string type;
+        switch(input){
+            case "1":
+                type = "approved";
+                break;
+            case "2":
+                type = "denied";
+                break;
+            default:
+                type = "pending";
+                break;
+        }
+        
+        db.setExpenseStatus(id, type);
     }
 
-    public void putRecord(string key, object obj){
-        //todo
+    public static void viewPending(){
+        foreach(string s in db.getPendingExpenses()){
+            Console.WriteLine(s);
+        }
     }
 
-}
-
-public class UserHandler{
-    enum userType
-    {
-        employee,
-        manager
+    public static void viewPrevious(){
+        foreach(string s in db.getExpensesByEmpId(empid)){
+            Console.WriteLine(s);
+        }
     }
 
-    public void submitTicket(object obj){
-        //use putrecord to submit ticket, validate input
-        //maybe add return for success/failure? probably better to log
+    public static void employeeMenu(){
+        while (true)
+        {
+            Console.WriteLine("Choose from the following options:");
+            Console.WriteLine("[1] Submit ticket");
+            Console.WriteLine("[2] View tickets");
+            Console.WriteLine("[3] Exit");
+            string input = Console.ReadLine();
+            switch (input)
+            {
+                case "1":
+                    submitTicket();
+                    break;
+                case "2":
+                    viewPrevious();
+                    break;
+                case "3":
+                    return;
+                    break;
+            }
+        }
+
     }
 
-    public List<object> getPending(){
-        //get list of pending tickets, only usable by manager
-        return null;
+    public static void managerMenu(){
+         while (true)
+        {
+            Console.WriteLine("Choose from the following options:");
+            Console.WriteLine("[1] View pending tickets");
+            Console.WriteLine("[2] Set ticket status");
+            Console.WriteLine("[3] Exit");
+            string input = Console.ReadLine();
+            switch (input)
+            {
+                case "1":
+                    viewPending();
+                    break;
+                case "2":
+                    processTicket();
+                    break;
+                case "3":
+                    return;
+                    break;
+            }
+        }
     }
-
-    public List<object> getPrev(){
-        //get previous submissions for employee
-        return null;
-    }
-
-    public void processTicket(object obj){
-        //allow manager to approve/deny
-    }
-
 
 
 }
