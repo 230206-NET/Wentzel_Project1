@@ -1,10 +1,15 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using Serilog;
+
 public class runner{
     static DatabaseRepo db = new DatabaseRepo();
     static int emptype = 0;
     static int empid;
+    
     public static void Main(string[] args){
+    Log.Logger = new LoggerConfiguration()
+            .WriteTo.File("logs/expenses.txt", rollingInterval: RollingInterval.Day).CreateLogger();
         while (emptype == 0)
         {
             Console.WriteLine("Would you like to login (1) or register (2)?");
@@ -88,7 +93,7 @@ public class runner{
                 type = "pending";
                 break;
         }
-        
+
         db.setExpenseStatus(id, type);
     }
 
@@ -146,7 +151,6 @@ public class runner{
                     break;
                 case "3":
                     return;
-                    break;
             }
         }
     }
