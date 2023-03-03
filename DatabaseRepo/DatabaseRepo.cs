@@ -1,5 +1,7 @@
 using System.Data.SqlClient;
 using Serilog;
+using Models;
+namespace Database;
 public class DatabaseRepo
 {
     SqlConnection conn;
@@ -9,30 +11,40 @@ public class DatabaseRepo
 
     }
 
-    public List<string> getPendingExpenses(){
+    public List<Expense> getPendingExpenses(){
         Log.Information("Getting pending expenses");
         conn.Open();
         SqlCommand cmd = new SqlCommand("SELECT * FROM Expenses JOIN Employees ON EmployeeId = Employees.Id WHERE ExpenseType = 'pending'",conn);
         SqlDataReader reader = cmd.ExecuteReader();
-        List<string> ret = new List<string>();
-        ret.Add("Id\tValue\tNote\tName");
+        List<Expense> ret = new List<Expense>();
         while(reader.Read()){
-            ret.Add(reader["Id"].ToString()+'\t'+reader["ExpenseValue"].ToString()+'\t'+reader["ExpenseNote"].ToString()+'\t'+reader["EmployeeName"].ToString());
+            ret.Add( new Expense{
+                value = (decimal)reader["ExpenseValue"],
+                note = (string)reader["ExpenseNote"],
+                status = (string)reader["ExpenseType"],
+                id = (int)reader["Id"],
+                empid = (int)reader["EmployeeId"]
+            });
         }
         conn.Close();
         return ret;
     }
 
-    public List<string> getExpensesByEmpId(int id){
+    public List<Expense> getExpensesByEmpId(int id){
         Log.Information("Getting expenses for id {0}", id);
         conn.Open();
         SqlCommand cmd = new SqlCommand("SELECT * FROM Expenses JOIN Employees ON EmployeeId = Employees.Id WHERE Employees.Id = @id",conn);
         cmd.Parameters.AddWithValue("@id", id);
         SqlDataReader reader = cmd.ExecuteReader();
-        List<string> ret = new List<string>();
-        ret.Add("Id\tValue\tNote\tType");
+        List<Expense> ret = new List<Expense>();
         while(reader.Read()){
-            ret.Add(reader["Id"].ToString()+'\t'+reader["ExpenseValue"].ToString()+'\t'+reader["ExpenseNote"].ToString()+'\t'+reader["ExpenseType"].ToString());
+            ret.Add( new Expense{
+                value = (decimal)reader["ExpenseValue"],
+                note = (string)reader["ExpenseNote"],
+                status = (string)reader["ExpenseType"],
+                id = (int)reader["Id"],
+                empid = (int)reader["EmployeeId"]
+            });
         }
         conn.Close();
         return ret;
