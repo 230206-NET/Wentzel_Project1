@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Security.Cryptography;
 using Models;
 using Database;
 using Microsoft.AspNetCore.Mvc;
@@ -20,10 +22,8 @@ app.MapGet("/", () => "hello");
 
 app.MapGet("/pending", ([FromServices] DatabaseRepo service) => service.getPendingExpenses());
 
-app.MapGet("/expense", ([FromQuery] int id, [FromServices] DatabaseRepo service) => {
-    if(service.getPassByEmpId(id).Equals(pass)){
-        return service.getExpensesByEmpId(id);
-    }
-    return "forbidden";
-    });
+app.MapGet("/expense", ([FromQuery] string? id, string? pass, [FromServices] DatabaseRepo service) =>  
+pass.Equals(service.getPassByEmpId(id)) ? Results.Json(service.getExpensesByEmpId(int.Parse(id))) : Results.Unauthorized());
+
+
 app.Run();
