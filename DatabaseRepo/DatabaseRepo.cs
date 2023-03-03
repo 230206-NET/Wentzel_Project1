@@ -50,15 +50,22 @@ public class DatabaseRepo
         return ret;
     }
 
-    public void putNewExpense(string note, int empid, decimal value){
+    public Expense putNewExpense(string note, int empid, decimal value){
         Log.Information("Putting expense for employee {0}", empid);
         conn.Open();
-        SqlCommand cmd = new SqlCommand("INSERT into Expenses(ExpenseValue, ExpenseNote, EmployeeId, ExpenseType) VALUES (@value, @note, @empid, 'pending');",conn);
+        SqlCommand cmd = new SqlCommand("INSERT into Expenses(ExpenseValue, ExpenseNote, EmployeeId, ExpenseType) OUTPUT INSERTED.Id VALUES (@value, @note, @empid, 'pending');",conn);
         cmd.Parameters.AddWithValue("@value", value);
         cmd.Parameters.AddWithValue("@note", note);
         cmd.Parameters.AddWithValue("@empid", empid);
-        cmd.ExecuteNonQuery();
+        int id = (int) cmd.ExecuteScalar();
         conn.Close();
+        return new Expense{
+            value = value,
+            empid = empid,
+            note = note,
+            status = "pending",
+            id = id
+        };
     }
 
     public string getPassByEmpId(string id){
@@ -82,7 +89,7 @@ public class DatabaseRepo
         return ret;
     }
 
-    public int newEmployee(string name, string pass){
+    public Employee newEmployee(string name, string pass){
         Log.Information("Making new employee with name {0} and password {1}",name, pass);
         conn.Open();
         SqlCommand cmd = new SqlCommand("INSERT into Employees(EmployeeType, EmployeeName, EmployeePass) OUTPUT INSERTED.Id VALUES (@type, @name, @pass);",conn);
@@ -91,10 +98,15 @@ public class DatabaseRepo
         cmd.Parameters.AddWithValue("@pass", pass);
         int ret = (int)cmd.ExecuteScalar();
         conn.Close();
-        return ret;
+        return new Employee{
+            name = name,
+            password = pass,
+            id = ret,
+            type = 1
+        };
     }
 
-    public void setExpenseStatus(int id, string stat){
+    public int setExpenseStatus(int id, string stat){
         Log.Information("Setting expense {0} status to {1}", id, stat);
         conn.Open();
         SqlCommand cmd = new SqlCommand("UPDATE Expenses SET ExpenseType = @status WHERE Id = @id",conn);
@@ -102,6 +114,7 @@ public class DatabaseRepo
         cmd.Parameters.AddWithValue("@id", id);
         cmd.ExecuteNonQuery();
         conn.Close();
+        return id;
     }
 
 }
