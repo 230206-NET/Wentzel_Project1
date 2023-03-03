@@ -4,7 +4,10 @@ using Models;
 using Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Serilog;
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration().WriteTo.File("../log").CreateLogger();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = null;
