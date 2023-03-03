@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
-Log.Logger = new LoggerConfiguration().WriteTo.File("../log").CreateLogger();
+Log.Logger = new LoggerConfiguration().WriteTo.File("../logclear").CreateLogger();
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = null;
